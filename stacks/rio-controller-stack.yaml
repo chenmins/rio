@@ -22,7 +22,7 @@ kubernetes:
               optional: true
               secretName: rio-api-validator
           containers:
-          - image: ${IMAGE}
+          - image: chenmins/rio-controller:v0.8.0
             imagePullPolicy: Always
             name: rio-controller
             args:
