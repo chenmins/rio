@@ -40,7 +40,7 @@ kubernetes:
             - name: RIO_NAMESPACE
               value: ${NAMESPACE}
             - name: RIO_PACKAGE
-                 value: chenmins
+              value: chenmins
             volumeMounts:
             - mountPath: /var/run/rio/ssl
               name: secret-api-validator
