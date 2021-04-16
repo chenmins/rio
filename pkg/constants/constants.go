@@ -11,7 +11,7 @@ const (
 	RegistryService  = "localhost:80"
 	LocalRegistry    = "localhost:5442"
 	BuildkitdService = "buildkitd"
-	BuildkitdImage   = "moby/buildkit:v0.6.1"
+	BuildkitdImage   = "chenmins/buildkit:v0.6.1"
 
 	AutoscalerServiceName = "autoscaler"
 
