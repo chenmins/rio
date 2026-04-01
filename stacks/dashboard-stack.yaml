@@ -1,7 +1,7 @@
 services:
   dashboard:
     version: v0
-    image: "rancher/rio-dashboard:preview"
+    image: "chenmins/rio-dashboard:preview"
     ports:
     - 80
     global_permissions:
