@@ -33,7 +33,7 @@ const (
 )
 
 var (
-	ControllerImage    = "rancher/rio-controller"
+	ControllerImage    = "chenmins/rio-controller"
 	ControllerImageTag = "dev"
 
 	Prometheus = "prometheus"
