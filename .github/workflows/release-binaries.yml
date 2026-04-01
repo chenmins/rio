@@ -1,0 +1,68 @@
+name: Release Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (example: v0.8.0)'
+        required: true
+
+env:
+  GO_VERSION: '1.22.x'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Resolve release version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.tag }}"
+          else
+            VERSION="${GITHUB_REF_NAME}"
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "commit=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Build binaries
+        run: |
+          set -euo pipefail
+          mkdir -p dist/release
+
+          LDFLAGS="-s -w \
+            -X github.com/rancher/rio/pkg/version.Version=${{ steps.version.outputs.version }} \
+            -X github.com/rancher/rio/pkg/version.GitCommit=${{ steps.version.outputs.commit }} \
+            -X github.com/rancher/rio/pkg/constants.ControllerImage=chenmins/rio-controller \
+            -X github.com/rancher/rio/pkg/constants.ControllerImageTag=${{ steps.version.outputs.version }}"
+
+          GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -tags static -ldflags "$LDFLAGS" -o dist/release/rio-darwin-amd64 ./cli
+          GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -tags static -ldflags "$LDFLAGS" -o dist/release/rio-linux-amd64 ./cli
+          GOOS=linux GOARCH=arm GOARM=7 CGO_ENABLED=0 go build -tags static -ldflags "$LDFLAGS" -o dist/release/rio-linux-arm ./cli
+          GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -tags static -ldflags "$LDFLAGS" -o dist/release/rio-linux-arm64 ./cli
+          GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -tags static -ldflags "$LDFLAGS" -o dist/release/rio-windows-amd64 ./cli
+
+      - name: Publish GitHub Release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          files: |
+            dist/release/rio-darwin-amd64
+            dist/release/rio-linux-amd64
+            dist/release/rio-linux-arm
+            dist/release/rio-linux-arm64
+            dist/release/rio-windows-amd64
+          generate_release_notes: true
